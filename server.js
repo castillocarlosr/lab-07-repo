@@ -102,7 +102,8 @@ function Movie(data){
   this.overview = data.overview;
   this.average_vote = data.vote_average;
   this.total_votes = data.vote_count;
-  this.image_url = data.poster_path;
+  this.image_url = `https://image.tmdb.org/t/p/original/${data.poster_path}`;
+  console.log(this.image_url);
   this.popularity = data.popularity;
   this.released_on = data.release_date;
 }
