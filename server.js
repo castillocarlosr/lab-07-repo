@@ -20,6 +20,8 @@ app.get('/location', (request, response) => {
 
 app.get('/weather', getWeather);
 
+app.get('/yelp', getYelp);
+
 function handleError(err, res){
   console.error('ERR', err);
   if (res) res.status(500).send('Oh NOOO!!!!  we\'re so sorry');
@@ -52,15 +54,22 @@ function getWeather(request, response){
   const URL = `https://api.darksky.net/forecast/${process.env.DARK_SKY_API}/${request.query.data.latitude},${request.query.data.longitude}`;
   return superagent.get(URL)
     .then(forecastResults =>{
-      // const forecast = [];
-      // forecastResults.body.daily.data.forEach(day =>{
-      //   const dayResult = new DailyWeather(day);
-      //   forecast.push(dayResult);
-      // })
-      // console.log(forecast);
-      // response.send(forecast);
       response.send(forecastResults.body.daily.data.map((day)=>{
         return new DailyWeather(day);
+      }));
+    })
+    .catch(error => handleError(error, response));
+}
+
+function getYelp(request, response){
+  const URL = `https://api.yelp.com/v3/businesses/search?term=resturants&latitude=${request.query.data.latitude}&longitude=${request.query.data.longitude}`;
+  return superagent.get(URL)
+    .set('Authorization', `Bearer ${process.env.YELP_API}`)
+    .then(yelpResults =>{
+      // console.log(yelpResults);
+      response.send(yelpResults.body.businesses.map((resturants)=>{
+        return new YelpRestaurants(resturants);
+        // console.log(resturants);
       }));
     })
     .catch(error => handleError(error, response));
@@ -69,6 +78,14 @@ function getWeather(request, response){
 function DailyWeather(data){
   this.forecast = data.summary;
   this.time = new Date(data.time * 1000).toString().slice(0,15);
+}
+
+function YelpRestaurants(data){
+  this.name = data.name;
+  this.image_url = data.image_url;
+  this.price = data.price;
+  this.rating = data.rating;
+  this.url = data.url;
 }
 
 app.listen(PORT, () => console.log(`App is up on ${PORT}`) );
