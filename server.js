@@ -72,8 +72,10 @@ function getYelp(request, response){
 }
 
 function getMovie(request, response){
-  console.log(request.query);
-  const URL = `https://api.themoviedb.org/3/discover/movie?api_key=${process.env.MOVIES_API}&language=en-US&region=US&sort_by=popularity.desc&page=1`;
+  // console.log(request.query.data);
+  let cityname = request.query.data.formatted_query.split(',')[0];
+  // const URL = `https://api.themoviedb.org/3/discover/movie?api_key=${process.env.MOVIES_API}&language=en-US&region=US&sort_by=popularity.desc&page=1`;
+  const URL = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIES_API}&language=en-US&query=${cityname}&page=1`
   return superagent.get(URL)
     .then(movie =>{
       console.log(movie);
