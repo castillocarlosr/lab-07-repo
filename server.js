@@ -27,10 +27,8 @@ function handleError(err, res){
 
 function getLocation(query){
   const geoData = `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${process.env.GOOGLE_MAPS_API}`;
-  console.log(geoData);
   return superagent.get(geoData)
     .then(data => {
-      console.log(data.body);
       if (! data.body.results.length){ throw 'NO DATA';}
       else{
         let location = new Location(data.body.results[0]);
@@ -52,12 +50,22 @@ function Location(data){
 
 function getWeather(request, response){
   const URL = `https://api.darksky.net/forecast/${process.env.DARK_SKY_API}/${request.query.data.latitude},${request.query.data.longitude}`;
-  console.log(URL);
+  return superagent.get(URL)
+    .then(forecastResults =>{
+      const forecast = [];
+      forecastResults.body.daily.data.forEach(day =>{
+        const dayResult = new DailyWeather(day);
+        forecast.push(dayResult);
+      })
+      console.log(forecast);
+      response.send(forecast);
+    })
+    .catch(error => handleError(error, response));
 }
 
 function DailyWeather(data){
-  this.forcast = data.summary;
-  this.date = new Date(data.time * 1000).toString().slice(0,15);
+  this.forecast = data.summary;
+  this.time = new Date(data.time * 1000).toString().slice(0,15);
 }
 
 app.listen(PORT, () => console.log(`App is up on ${PORT}`) );
