@@ -52,13 +52,16 @@ function getWeather(request, response){
   const URL = `https://api.darksky.net/forecast/${process.env.DARK_SKY_API}/${request.query.data.latitude},${request.query.data.longitude}`;
   return superagent.get(URL)
     .then(forecastResults =>{
-      const forecast = [];
-      forecastResults.body.daily.data.forEach(day =>{
-        const dayResult = new DailyWeather(day);
-        forecast.push(dayResult);
-      })
-      console.log(forecast);
-      response.send(forecast);
+      // const forecast = [];
+      // forecastResults.body.daily.data.forEach(day =>{
+      //   const dayResult = new DailyWeather(day);
+      //   forecast.push(dayResult);
+      // })
+      // console.log(forecast);
+      // response.send(forecast);
+      response.send(forecastResults.body.daily.data.map((day)=>{
+        return new DailyWeather(day);
+      }));
     })
     .catch(error => handleError(error, response));
 }
