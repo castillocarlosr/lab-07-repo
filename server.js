@@ -22,9 +22,11 @@ app.get('/weather', getWeather);
 
 app.get('/yelp', getYelp);
 
+app.get('/movies', getMovie);
+
 function handleError(err, res){
   console.error('ERR', err);
-  if (res) res.status(500).send('Oh NOOO!!!!  we\'re so sorry');
+  if (res) res.status(500).send('Oh NOOO!!!!  We\'re so sorry.  We really tried.');
 }
 
 function getLocation(query){
@@ -45,10 +47,6 @@ function Location(data){
   this.latitude = data.geometry.location.lat;
   this.longitude = data.geometry.location.lng;
 }
-//ToDO:  create an object constructor for weahter app.
-//something like function WEATHER(dataWeather){}
-//something like app.get('/weather', (request, response) => {});
-//got it.  ok GO!
 
 function getWeather(request, response){
   const URL = `https://api.darksky.net/forecast/${process.env.DARK_SKY_API}/${request.query.data.latitude},${request.query.data.longitude}`;
@@ -62,14 +60,25 @@ function getWeather(request, response){
 }
 
 function getYelp(request, response){
-  const URL = `https://api.yelp.com/v3/businesses/search?term=resturants&latitude=${request.query.data.latitude}&longitude=${request.query.data.longitude}`;
+  const URL = `https://api.yelp.com/v3/businesses/search?term=restaurants&latitude=${request.query.data.latitude}&longitude=${request.query.data.longitude}`;
   return superagent.get(URL)
     .set('Authorization', `Bearer ${process.env.YELP_API}`)
     .then(yelpResults =>{
-      // console.log(yelpResults);
-      response.send(yelpResults.body.businesses.map((resturants)=>{
-        return new YelpRestaurants(resturants);
-        // console.log(resturants);
+      response.send(yelpResults.body.businesses.map((restaurants)=>{
+        return new YelpRestaurants(restaurants);
+      }));
+    })
+    .catch(error => handleError(error, response));
+}
+
+function getMovie(request, response){
+  console.log(request.query);
+  const URL = `https://api.themoviedb.org/3/discover/movie?api_key=${process.env.MOVIES_API}&language=en-US&region=US&sort_by=popularity.desc&page=1`;
+  return superagent.get(URL)
+    .then(movie =>{
+      console.log(movie);
+      response.send(movie.body.results.map((results)=>{
+        return new Movie(results);
       }));
     })
     .catch(error => handleError(error, response));
@@ -86,6 +95,16 @@ function YelpRestaurants(data){
   this.price = data.price;
   this.rating = data.rating;
   this.url = data.url;
+}
+
+function Movie(data){
+  this.title = data.title;
+  this.overview = data.overview;
+  this.average_vote = data.vote_average;
+  this.total_votes = data.vote_count;
+  this.image_url = data.poster_path;
+  this.popularity = data.popularity;
+  this.released_on = data.release_date;
 }
 
 app.listen(PORT, () => console.log(`App is up on ${PORT}`) );
